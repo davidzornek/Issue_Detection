@@ -7,3 +7,5 @@ Issue_Detection_Simulation.R takes real insurance claim data and transforms it i
 Univariate_Issue_Detection.R begins tackling the problem in the simplest univariate case.
 
 The remaining scripts belong to a Shiny app that allows users to understand how various affect the methodology's ability to flag changes as issues. It also provides important insights that will drive selection of an appropriate statistical significance to meet a client's needs.
+
+A live version with viewable source code can be viewed at https://david-zornek.shinyapps.io/Issue_Detection/
