@@ -1,3 +1,6 @@
+#This application mirrors the Issue_Detection_Simulation.R and Univariate_Issue_Detection.R scripts,
+#allowing the user to adjust some parameters. The methodology has already been documented at length
+#in those scripts, so the reader is referred there for additional information.
 
 shinyServer(function(input, output) {
   
@@ -48,10 +51,6 @@ shinyServer(function(input, output) {
     sum(New_Year()$Reported_Count) / sum(New_Year()$FTE)
   })
   
-  True_Lambda <- reactive({
-    (Overall_Real_Frequency + input$factor2*mean(Std_Dev_Frequency$StdDev, na.rm = TRUE))/100
-  })
-  
   Prior_Data <- reactive({
     filter(Total_Data_After_ExposureAdj(), Policy_Year != Max_Policy_Year)
   })
@@ -72,46 +71,14 @@ shinyServer(function(input, output) {
     var(Year_Freq()$Lambda)*nrow(Year_Freq())/(nrow(Year_Freq()) - 1)
   })
   
-  SDev_Lambda <- reactive({
-    sqrt(SampVar_Lambda())
-  })
-  
   CI <- reactive({
     qgamma(c((1 - input$confidence)/2, (1 + input$confidence)/2), shape = (Lambda()^2)/SampVar_Lambda(), rate = Lambda()/SampVar_Lambda())
   })
-  
-#Power Calculation
-  
-  All_Freq <- reactive({
-    Total_Data_After_ExposureAdj() %>% 
-      group_by(Policy_Year) %>% 
-      summarise(Reported_Count = sum(Reported_Count),
-                FTE = sum(FTE)) %>% 
-      mutate(Lambda = Reported_Count / FTE)
-  })
-  
-  #Assumes variance of lambda is constant over time.
-  Miss <- reactive({
-    pgamma(CI()[2], shape = (True_Lambda()^2)/SampVar_Lambda(), rate = True_Lambda()/SampVar_Lambda())
-  })
-  
-  
+
   output$Flag <- renderText({
     if(New_Lambda() < CI()[2]){
-      "No issue"
+      "No Issue Flagged"
     } else {"Issue Flagged"}
-  })
-  
-  output$test <- renderText({
-    paste0("True Lambda is ", True_Lambda())
-  })
-  
-  output$Type2 <- renderText({
-    paste0("Probability of a miss is ", Miss())
-  })
-  
-  output$Type1 <- renderText({
-    paste0("Probability of a false positive is ", (1 - input$confidence)/2)
   })
   
   Comparison_Table <- reactive({
@@ -153,6 +120,14 @@ shinyServer(function(input, output) {
     
   })
   
+  output$Cost_Table <- renderDataTable({
+    datatable(
+      data.frame("Issue_Flagged" = c("X - S + e", "e + h"), "Issue_Not_Flagged" = c("X",0), row.names = c("Issue Present", "Issue Not Present")),
+      colnames = c("Issue Flagged", "Issue Not Flagged"),
+      options = list(searching = FALSE, bInfo = FALSE, paging = FALSE, columnDefs = list(list(className = 'dt-center', targets = 0:2), list(orderable = FALSE, targets = 0:2)))
+    )
+  })
+  
   output$Power_vs_True_Lambda <- renderPlot({
     ggplot(Power_Data(), aes(x = Power_Data()$True_Lambda, y = Power_Data()$Miss)) +
       geom_line(stat = "identity") + 
@@ -164,32 +139,12 @@ shinyServer(function(input, output) {
       geom_line(stat = "identity") +
       labs(x = "Probability of False Positive", y = "Probability of False Negative")
   })
-  
-  
-  ####### Adopt a null of H_0 = Issue = (True_Lambda = Lambda_2015)
-  ####### Minimize type 1 errors = minimize P(Lambda_2015 <= c | True_Lambda = Lambda_2015)
-  
-  Hit_Miss_Table <- reactive({
-    temp <- as.data.frame(matrix(nrow = 2, ncol = 2))
-    rownames(temp) <- c("Issue", "No Issue")
-    names(temp) <- c("Positive", "Negative")
-    
-    temp[1,2] <- Miss()
-    temp[]
-    
-  })
-  
+
   output$Comparison_Table <- DT::renderDataTable({
-    datatable(Comparison_Table())
+    datatable(Comparison_Table(),
+              rownames = FALSE,
+              options = list(searching = FALSE, bInfo = FALSE, paging = FALSE,
+                             columnDefs = list(list(className = 'dt-center', targets = 0:2), list(orderable = FALSE, targets = 0:2)))
+    )
   })
-  
-  output$Total_Data_After <- DT::renderDataTable({
-    datatable(Total_Data_After_ExposureAdj())
-  })
-  
-  output$davetest <- DT::renderDataTable({
-    datatable()
-  })
-  
-  
 })

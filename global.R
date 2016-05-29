@@ -1,20 +1,14 @@
 library(magrittr)
-library(rCharts)
+library(Hmisc)
 library(DT)
 library(plyr)
-library(tidyr)
-library(owactools)
-library(lubridate)
-library(equivalence)
 library(shiny)
 library(shinydashboard)
-library(Hmisc)
 library(ggplot2)
 library(dplyr)
 
 
 Real_Data_Before <- readRDS("data/Real_Data_Before.rds")
-Aggregated_Exposure <- readRDS("data/Aggregated_Exposure.rds")
 
 temp <- filter(Real_Data_Before, Frequency != 100)
 

@@ -6,12 +6,9 @@
 library(magrittr)
 library(plyr)
 library(tidyr)
-library(owactools)
 library(lubridate)
 library(equivalence)
 library(dplyr)
-
-setwd("//Ad.us.mrshmc.com/us_users/CHI/DZORNEK/Bitbucket Repository/Issue Detection")
 
 data <- read.csv("data/Revised data.csv", stringsAsFactors = FALSE)
 exposure <- read.csv("data/Revised Exposure Workup.csv", stringsAsFactors = FALSE)
